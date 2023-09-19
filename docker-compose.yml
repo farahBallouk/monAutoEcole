@@ -1,0 +1,61 @@
+version: "3"
+services:
+  service_auth:
+    container_name: service_auth
+    build:
+      context: ./service_auth
+      dockerfile: Dockerfile
+    image: service_auth:latest
+    expose:
+      - 9001
+    ports:
+      - "9001:9001"
+    volumes:
+      - ./service_auth:/var/www/html
+    environment:
+       APP_ENV: local
+       APP_DEBUG: true
+       APP_KEY: base64:bJfraWyi1IxJk6B3QUSNgMkoLDSRDuvsN1kDbC2sKIA=
+       DB_CONNECTION: mysql
+       DB_HOST: mysql
+       DB_PORT: 3306
+       DB_DATABASE: mon_auth
+       DB_USERNAME: root
+       DB_PASSWORD: root
+    depends_on:
+      - mysql
+    networks:
+      - app_net
+  mysql:
+    image: mysql:8.0
+    environment:
+       MYSQL_ROOT_PASSWORD: root
+       MYSQL_ALLOW_EMPTY_PASSWORD: yes
+       MYSQL_DATABASE: mon_auth
+       MYSQL_PASSWORD: root
+    ports:
+      - "3308:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - app_net
+      
+  phpmyadmin:
+    image: phpmyadmin:latest
+    environment:
+       PMA_HOST: mysql
+       PMA_PORT: 3306
+       PMA_ARBITRARY: 1
+
+    ports:
+      - "8080:80"
+    depends_on:
+      - mysql
+    networks:
+      - app_net
+    restart: always
+networks:
+  app_net:
+    driver: bridge
+volumes:
+  mysql-data:
